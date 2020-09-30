@@ -1,0 +1,22 @@
+default: &default
+  adapter: postgresql
+  encoding: utf8
+  pool: 5
+
+development:
+  <<: *default
+  database: sms_service_development
+
+test:
+  <<: *default
+  database: sms_service_test
+
+production:
+  <<: *default
+  pool: 15
+
+# production:
+#   <<: *default
+#   database: sms_service_production
+#   username: sms_service
+#   password: <%= ENV['SMS_SERVICE_DATABASE_PASSWORD'] %>
