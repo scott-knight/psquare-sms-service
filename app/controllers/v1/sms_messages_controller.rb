@@ -5,11 +5,11 @@ class V1::SmsMessagesController < ApplicationController
 
   def index
     filtered_messages = SmsMessage.kept.order(updated_at: :desc)
-    filtered_messages = filtered_messages.search_message(params[:message])         if params[:message].present?
-    filtered_messages = filtered_messages.search_phone(params[:phone])             if params[:phone].present?
-    filtered_messages = filtered_messages.search_message_id(params[:message_id])   if params[:message_id].present?
-    filtered_messages = filtered_messages.search_status(params[:status])           if params[:status].present?
-    filtered_messages = filtered_messages.search_status_code(params[:status_code]) if params[:status_code].present?
+    filtered_messages = filtered_messages.search_message_txt(params[:message_txt])   if params[:message_txt].present?
+    filtered_messages = filtered_messages.search_phone(params[:phone])               if params[:phone].present?
+    filtered_messages = filtered_messages.search_message_uuid(params[:message_uuid]) if params[:message_uuid].present?
+    filtered_messages = filtered_messages.search_status(params[:status])             if params[:status].present?
+    filtered_messages = filtered_messages.search_status_code(params[:status_code])   if params[:status_code].present?
 
     @pagy, @sms_messages = pagy(filtered_messages)
     render json: SmsMessageSerializer.new(

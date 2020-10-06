@@ -4,8 +4,8 @@ class CreateSmsMessages < ActiveRecord::Migration[6.0]
   def up
     create_table :sms_messages, id: :uuid do |t|
       t.string   :phone_number, null: false, limit: 15
-      t.text     :message, null: false
-      t.string   :message_id, limit: 50
+      t.text     :message_txt, null: false
+      t.string   :message_uuid, limit: 80
       t.string   :status
       t.integer  :status_code
       t.integer  :total_tries
@@ -21,7 +21,7 @@ class CreateSmsMessages < ActiveRecord::Migration[6.0]
     execute <<-SQL.squish
       CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE
       ON sms_messages FOR EACH ROW EXECUTE PROCEDURE
-      tsvector_update_trigger(tsv, 'pg_catalog.english', message);
+      tsvector_update_trigger(tsv, 'pg_catalog.english', message_txt);
     SQL
 
     # allows for vector searches, makes it super fast
@@ -29,7 +29,7 @@ class CreateSmsMessages < ActiveRecord::Migration[6.0]
 
     # speeds up %string% searches significantly
     add_index(:sms_messages, :phone_number, using: :gin, opclass: {phone_number: :gin_trgm_ops}, algorithm: :concurrently)
-    add_index(:sms_messages, :message_id, using: :gin, opclass: {message_id: :gin_trgm_ops}, algorithm: :concurrently)
+    add_index(:sms_messages, :message_uuid, using: :gin, opclass: {message_uuid: :gin_trgm_ops}, algorithm: :concurrently)
     add_index(:sms_messages, :status, using: :gin, opclass: {status: :gin_trgm_ops}, algorithm: :concurrently)
     add_index(:sms_messages, :url_domain, using: :gin, opclass: {url_domain: :gin_trgm_ops}, algorithm: :concurrently)
     add_index(:sms_messages, :url_path, using: :gin, opclass: {url_path: :gin_trgm_ops}, algorithm: :concurrently)
@@ -42,7 +42,7 @@ class CreateSmsMessages < ActiveRecord::Migration[6.0]
     remove_index(:sms_messages, :total_tries)
     remove_index(:sms_messages, :url)
     remove_index(:sms_messages, :status)
-    remove_index(:sms_messages, :message_id)
+    remove_index(:sms_messages, :message_uuid)
     remove_index(:sms_messages, :phone_number)
     remove_index(:sms_messages, :tsv)
 

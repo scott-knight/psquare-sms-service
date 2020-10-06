@@ -6,13 +6,13 @@ class SmsMessage < ApplicationRecord
 
   before_validation :sanitize_phone_number
 
-  validates :phone_number, :message, presence: true
+  validates :phone_number, :message_txt, presence: true
   validates :phone_number, length: { minimum: 10, maximum: 10 }
   validate  :prefix_is_safe
 
   pg_search_scope(
-    :search_message,
-    against: :message,
+    :search_message_txt,
+    against: :message_txt,
     using: {
       tsearch: {
         dictionary:      'english',
@@ -21,8 +21,8 @@ class SmsMessage < ApplicationRecord
     }
   )
 
-  scope :failed_submit, -> { where.not(message_id: nil).where.not(status_code: nil).where('status_code != ?', 200) }
-  scope :search_message_id, ->(id) { where('message_id iLIKE ?', "%#{id}%") }
+  scope :failed_submit, -> { where(message_uuid: nil).where.not(status_code: nil).where('status_code != ?', 200) }
+  scope :search_message_uuid, ->(id) { where('message_uuid iLIKE ?', "%#{id}%") }
   scope :search_phone, ->(number) { where('phone_number LIKE ?', "%#{number}%") }
   scope :search_status, ->(status) { where('status iLIKE ?', "%#{status}%") }
   scope :search_status_code, ->(status_code) { where('status_code = ?', status_code) }
@@ -32,7 +32,11 @@ class SmsMessage < ApplicationRecord
 
 
   def submitted?
-    !message_id.blank?
+    message_id.present? && status_code == 200
+  end
+
+  def submitted_url
+    %w(url_domain url_path).join
   end
 
   private

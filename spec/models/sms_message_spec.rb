@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe SmsMessage, type: :model do
-  describe 'before_validations' do
+  describe 'before_validation' do
     context 'sanitize_phone_number' do
       it 'should remove whitespace' do
         sm = build(:sms_message, phone_number: ' 9137804063  ')
@@ -30,7 +30,7 @@ RSpec.describe SmsMessage, type: :model do
     end
   end
 
-  describe 'validations' do
+  describe 'validation' do
     context 'phone_number' do
       it 'should NOT be blank' do
         sm = build(:sms_message, phone_number: '')
@@ -75,15 +75,109 @@ RSpec.describe SmsMessage, type: :model do
 
     context 'message' do
       it 'should be present' do
-        sm = build(:sms_message, message: '')
+        sm = build(:sms_message, message_txt: '')
         sm.save
         errors = sm.errors.full_messages
 
-        expect(errors).to include("Message can't be blank")
+        expect(errors).to include("Message txt can't be blank")
       end
     end
   end
 
-  describe 'scopes' do
+  describe 'scope' do
+    describe 'discarded' do
+      it 'should return ONLY discarded records' do
+        2.times { create(:sms_message, :successful_submit, :discarded) }
+        create(:sms_message)
+
+        expect(SmsMessage.discarded.size).to be 2
+      end
+    end
+
+    describe 'kept' do
+      it 'should return ONLY kept records' do
+        2.times { create(:sms_message, :successful_submit, :discarded) }
+        3.times { create(:sms_message, :successful_submit) }
+
+        expect(SmsMessage.kept.size).to be 3
+      end
+    end
+
+    describe 'failed_submit' do
+      it 'should return expected records' do
+        3.times { create(:sms_message, :failed_submit) }
+        create(:sms_message, :successful_submit)
+
+        expect(SmsMessage.failed_submit.size).to be 3
+      end
+    end
+
+    describe 'search_message' do
+      it 'should return expected records' do
+        3.times { create(:sms_message, :successful_submit) }
+        2.times { create(:sms_message, :successful_submit, message_txt: 'Sponge Bob Lives!') }
+        create(:sms_message, :failed_submit, message_txt: 'Failed Test Message' )
+        create(:sms_message, :failed_submit, message_txt: 'What about bob?' )
+
+        expect(SmsMessage.search_message_txt('test').size).to be 4
+        expect(SmsMessage.search_message_txt('bob').size).to be 3
+      end
+    end
+
+    describe 'search_message_uuid' do
+      it 'should return expected records' do
+        uuid = SecureRandom.uuid
+        3.times { create(:sms_message, :successful_submit) }
+        create(:sms_message, :successful_submit, message_uuid: uuid)
+
+        binding.pry
+      end
+    end
+
+    describe 'search_phone' do
+      it 'should return expected records' do
+      end
+    end
+
+    describe 'search_status' do
+      it 'should return expected records' do
+      end
+    end
+
+    describe 'search_status_code' do
+      it 'should return expected records' do
+      end
+    end
+
+    describe 'search_url_domain' do
+      it 'should return expected records' do
+      end
+    end
+
+    describe 'search_url_path' do
+      it 'should return expected records' do
+      end
+    end
+
+    describe 'unsubmitted' do
+      it 'should return expected records' do
+      end
+    end
+  end
+
+  describe 'instance methods' do
+    describe 'submitted?' do
+      it 'should return true' do
+      end
+
+      it 'should return false' do
+      end
+    end
+
+    describe 'submitted_url' do
+      it 'should return a full url' do
+        sm = build(:sms_message, :successful_submit)
+      end
+    end
   end
 end

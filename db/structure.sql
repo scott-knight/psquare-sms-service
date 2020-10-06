@@ -69,8 +69,8 @@ CREATE TABLE public.schema_migrations (
 CREATE TABLE public.sms_messages (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     phone_number character varying(15) NOT NULL,
-    message text NOT NULL,
-    message_id character varying(50),
+    message_txt text NOT NULL,
+    message_uuid character varying(80),
     status character varying,
     status_code integer,
     total_tries integer,
@@ -108,10 +108,10 @@ ALTER TABLE ONLY public.sms_messages
 
 
 --
--- Name: index_sms_messages_on_message_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_sms_messages_on_message_uuid; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_sms_messages_on_message_id ON public.sms_messages USING gin (message_id public.gin_trgm_ops);
+CREATE INDEX index_sms_messages_on_message_uuid ON public.sms_messages USING gin (message_uuid public.gin_trgm_ops);
 
 
 --
@@ -133,6 +133,13 @@ CREATE INDEX index_sms_messages_on_status ON public.sms_messages USING gin (stat
 --
 
 CREATE INDEX index_sms_messages_on_status_code ON public.sms_messages USING btree (status_code);
+
+
+--
+-- Name: index_sms_messages_on_total_tries; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sms_messages_on_total_tries ON public.sms_messages USING btree (total_tries);
 
 
 --
@@ -160,7 +167,7 @@ CREATE INDEX index_sms_messages_on_url_path ON public.sms_messages USING gin (ur
 -- Name: sms_messages tsvectorupdate; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE ON public.sms_messages FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('tsv', 'pg_catalog.english', 'message');
+CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE ON public.sms_messages FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger('tsv', 'pg_catalog.english', 'message_txt');
 
 
 --

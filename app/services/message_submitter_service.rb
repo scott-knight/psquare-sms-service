@@ -4,7 +4,7 @@ require 'faraday'
 
 class MessageSubmitterService
   attr_reader :current_url, :done, :primary_url, :backup_url, :json, :response,
-              :retry_on_fail, sms_message, :tries, total_tries, :urls
+              :retry_on_fail, :sms_message, :tries, :total_tries, :urls
 
   def initialize(sms_message_id:, provider: 2, retry_on_fail: true)
     @urls = ProviderUrlService.new
@@ -35,7 +35,7 @@ class MessageSubmitterService
 
   def domain_and_path
     uri = URI(current_url)
-    { url_domain: uri.domain, url_path: uri.path }
+    { url_domain: "#{uri.scheme}://#{uri.domain}", url_path: uri.path }
   end
 
   def send_to_provider(url, provider_type)
@@ -61,7 +61,6 @@ class MessageSubmitterService
       req.body = json
     end
 
-
     @current_url = url
     @total_tries += 1
     @tries += 1
@@ -70,10 +69,12 @@ class MessageSubmitterService
 
   def update_sms_message
     if done
+      body = Oj.load(response.body, symbol_keys: true)
       @sms_message.update(
-        Oj.load(response.body, symbol_keys: true)
-          .merge(status_code: response.status, total_tries: total_tries)
-          .merge(domain_and_path(url))
+        { message_uuid: body[:message_id],
+          status_code: response.status,
+          total_tries: total_tries
+        }.merge(domain_and_path(url))
       )
     else
       @sms_message.update(

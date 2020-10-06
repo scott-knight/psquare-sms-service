@@ -4,43 +4,32 @@
 FactoryBot.define do
   factory :sms_message do
     phone_number { Faker::PhoneNumber.cell_phone }
-    message { 'This is a test message. Enjoy!' }
+    message_txt { 'This is a test message. Enjoy!' }
 
-    trait :with_provider1 do
+    trait :successful_submit do
       after :build do |sms_message|
-        sms_message.message_id = SecureRandom.uuid
-        sms_message.retrys = rand(0..3)
-        sms_message.sent_to_provider1 = true
-        sms_message.sent_to_provider2 = false
-        sms_message.status = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-        sms_message.status_code = 200
-        sms_message.successful_provider = 1
-
+        sms_message.message_uuid = sms_message.message_uuid || SecureRandom.uuid
+        sms_message.status       = sms_message.status || 'Lorem ipsum dolor sit amet'
+        sms_message.status_code  = sms_message.status_code || 200
+        sms_message.total_tries  = sms_message.total_tries || rand(1..6)
+        sms_message.url_domain   = sms_message.url_domain || 'https://my-amazing-test-domain.com'
+        sms_message.url_path     = sms_message.url_path || "/test/provider#{rand(1..2)}"
       end
     end
 
-    trait :with_provider2 do
+    trait :failed_submit do
       after :build do |sms_message|
-        sms_message.message_id = SecureRandom.uuid
-        sms_message.retrys = rand(0..3)
-        sms_message.sent_to_provider1 = false
-        sms_message.sent_to_provider2 = true
-        sms_message.status = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-        sms_message.status_code = 200
-        sms_message.successful_provider = 2
-
+        sms_message.status      = sms_message.status || 'System was unable to post to external sms services'
+        sms_message.status_code = sms_message.status_code || 500
+        sms_message.total_tries = sms_message.total_tries || rand(3..6)
+        sms_message.url_domain  = sms_message.url_domain || 'https://my-amazing-test-domain.com'
+        sms_message.url_path    = sms_message.url_path || "/test/provider#{rand(1..2)}"
       end
     end
 
-    trait :with_both_providers do
+    trait :discarded do
       after :build do |sms_message|
-        sms_message.message_id = SecureRandom.uuid
-        sms_message.retrys = rand(2..6)
-        sms_message.sent_to_provider1 = true
-        sms_message.sent_to_provider2 = true
-        sms_message.status = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-        sms_message.status_code = 200
-        sms_message.successful_provider = rand > 0.5 ? 1 : 2
+        sms_message.discarded_at = sms_message.discarded_at || Time.current - (rand(2..10)).days
       end
     end
   end
