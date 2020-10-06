@@ -17,9 +17,6 @@ class CreateSmsMessages < ActiveRecord::Migration[6.0]
       t.timestamps null: false
     end
 
-    # allows for vector searches, makes it super fast
-    add_index(:sms_messages, :tsv, using: 'gin')
-
     # trigger updates on indexing for tsvector searches
     execute <<-SQL.squish
       CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE
@@ -27,17 +24,22 @@ class CreateSmsMessages < ActiveRecord::Migration[6.0]
       tsvector_update_trigger(tsv, 'pg_catalog.english', message);
     SQL
 
+    # allows for vector searches, makes it super fast
+    add_index(:sms_messages, :tsv, using: 'gin')
+
     # speeds up %string% searches significantly
     add_index(:sms_messages, :phone_number, using: :gin, opclass: {phone_number: :gin_trgm_ops}, algorithm: :concurrently)
     add_index(:sms_messages, :message_id, using: :gin, opclass: {message_id: :gin_trgm_ops}, algorithm: :concurrently)
     add_index(:sms_messages, :status, using: :gin, opclass: {status: :gin_trgm_ops}, algorithm: :concurrently)
     add_index(:sms_messages, :url_domain, using: :gin, opclass: {url_domain: :gin_trgm_ops}, algorithm: :concurrently)
     add_index(:sms_messages, :url_path, using: :gin, opclass: {url_path: :gin_trgm_ops}, algorithm: :concurrently)
+    add_index(:sms_messages, :total_tries)
     add_index(:sms_messages, :status_code)
   end
 
   def down
     remove_index(:sms_messages, :status_code)
+    remove_index(:sms_messages, :total_tries)
     remove_index(:sms_messages, :url)
     remove_index(:sms_messages, :status)
     remove_index(:sms_messages, :message_id)
