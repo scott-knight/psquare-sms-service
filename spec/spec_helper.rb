@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+# :nocov:
+
 require 'simplecov'
 require 'webmock/rspec'
 require 'database_cleaner/active_record'
+require 'sidekiq/testing'
 
 # start the things
 SimpleCov.start
@@ -47,3 +51,4 @@ RSpec.configure do |config|
 
   Kernel.srand config.seed
 end
+# :nocov:

@@ -40,5 +40,6 @@ module SmsService
     config.autoload_paths += Dir["#{config.root}/lib/**/"]
 
     config.autoloader = :zeitwerk
+    config.active_record.schema_format = :sql
   end
 end
