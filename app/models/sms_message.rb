@@ -26,6 +26,8 @@ class SmsMessage < ApplicationRecord
   scope :search_phone, ->(number) { where('phone_number LIKE ?', "%#{number}%") }
   scope :search_status, ->(status) { where('status iLIKE ?', "%#{status}%") }
   scope :search_status_code, ->(status_code) { where('status_code = ?', status_code) }
+  scope :search_url_domain, ->(domain) { where('url_domain iLIKE ?', "%#{domain}%") }
+  scope :search_url_path, ->(path) { where('url_path iLIKE ?', "%#{path}%") }
   scope :unsubmitted, -> { where(message_id: nil).where(status_code: nil) }
 
 
