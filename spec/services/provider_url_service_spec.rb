@@ -46,6 +46,12 @@ RSpec.describe ProviderUrlService do
       end
     end
 
+    describe 'provider_url' do
+      it 'should return a provider url' do
+        expect(service.provider_url(1)).to match(/provider1/)
+      end
+    end
+
     describe 'set_public_url' do
       it 'should set the default host in redis public_url' do
         sm = ProviderUrlService.new

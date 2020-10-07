@@ -4,6 +4,8 @@
 module SharedTestMethods
   extend RSpec::SharedContext
 
+  SMS_SERVICE_URL = 'https://jo3kcwlvke.execute-api.us-west-2.amazonaws.com/dev/provider2'
+
   def json_parse(json)
     Oj.load(json, symbol_keys: true)
   end
@@ -24,10 +26,12 @@ module SharedTestMethods
     )
   end
 
-  def stub_sms_service_success(url)
+  def stub_sms_service_success(url = SMS_SERVICE_URL)
+
   end
 
-  def stub_sms_service_failure(url)
+  def stub_sms_service_failure(url = SMS_SERVICE_URL)
+
   end
 end
 # :nocov:

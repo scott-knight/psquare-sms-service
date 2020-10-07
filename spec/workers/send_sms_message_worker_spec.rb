@@ -12,6 +12,8 @@ RSpec.describe SendSmsMessageWorker, type: :worker do
   describe 'perform' do
     it 'should work' do
       SendSmsMessageWorker.perform_async(sms_message.id)
+
+      expect(SendSmsMessageWorker).to have_enqueued_sidekiq_job(sms_message.id)
     end
   end
 end
