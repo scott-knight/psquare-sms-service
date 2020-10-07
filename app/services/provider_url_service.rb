@@ -63,9 +63,7 @@ class ProviderUrlService
   private
 
   def log_message(message, e)
-    Rails.logger.error Rainbow(
-      "ExternalSmsService #{message}. Rescued Error: #{e.to_s}"
-    ).red
+    Rails.logger.error "ExternalSmsService #{message}. Rescued Error: #{e.to_s}"
     nil
   end
   # :nocov:
