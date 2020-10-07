@@ -34,7 +34,6 @@ group :development do
   gem 'letter_opener'
   gem 'listen'
   gem 'meta_request'
-  gem 'squasher'
 end
 
 group :development, :test do
