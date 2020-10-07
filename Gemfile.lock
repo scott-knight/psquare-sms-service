@@ -221,6 +221,9 @@ GEM
       rspec-expectations (~> 3.9)
       rspec-mocks (~> 3.9)
       rspec-support (~> 3.9)
+    rspec-sidekiq (3.1.0)
+      rspec-core (~> 3.0, >= 3.0.0)
+      sidekiq (>= 2.4.0)
     rspec-support (3.9.3)
     ruby_parser (3.15.0)
       sexp_processor (~> 4.9)
@@ -290,6 +293,7 @@ DEPENDENCIES
   rails (~> 6.0.3, >= 6.0.3.3)
   rainbow
   rspec-rails
+  rspec-sidekiq
   shoulda-matchers
   sidekiq
   simplecov

@@ -50,6 +50,7 @@ end
 
 group :test do
   gem 'database_cleaner-active_record'
+  gem 'rspec-sidekiq'
   gem 'shoulda-matchers'
   gem 'simplecov'
 end
