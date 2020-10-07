@@ -153,18 +153,8 @@ RSpec.describe SmsMessage, type: :model do
         create(:sms_message, :successful_submit, status: 'It worked well')
 
         expect(SmsMessage.search_status('Lorem ipsum').size).to be 2
-        expect(SmsMessage.search_status('unable').size).to eq 1
+        expect(SmsMessage.search_status('fail').size).to eq 1
         expect(SmsMessage.search_status('worked').size).to eq 1
-      end
-    end
-
-    describe 'search_status_code' do
-      it 'should return expected records' do
-        2.times { create(:sms_message, :successful_submit) }
-        create(:sms_message, :failed_submit)
-
-        expect(SmsMessage.search_status_code(200).size).to eq 2
-        expect(SmsMessage.search_status_code(500).size).to eq 1
       end
     end
 
@@ -210,7 +200,7 @@ RSpec.describe SmsMessage, type: :model do
       end
 
       it 'should return false' do
-        sm = build(:sms_message, :failed_submit)
+        sm = build(:sms_message)
 
         expect(sm.submitted?).to be_falsey
       end

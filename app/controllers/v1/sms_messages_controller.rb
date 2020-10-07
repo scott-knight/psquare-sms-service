@@ -9,7 +9,6 @@ class V1::SmsMessagesController < ApplicationController
     filtered_messages = filtered_messages.search_phone(params[:phone])               if params[:phone].present?
     filtered_messages = filtered_messages.search_message_uuid(params[:message_uuid]) if params[:message_uuid].present?
     filtered_messages = filtered_messages.search_status(params[:status])             if params[:status].present?
-    filtered_messages = filtered_messages.search_status_code(params[:status_code])   if params[:status_code].present?
 
     @pagy, @sms_messages = pagy(filtered_messages)
     render json: SmsMessageSerializer.new(
@@ -33,7 +32,7 @@ class V1::SmsMessagesController < ApplicationController
   end
 
   def delivery_status
-    if @sms_message.update(update_message_params)
+    if @sms_message.update(update_params)
       render json: { message: 'sms_message was successfully updated' }, status: :ok
     else
       render json: { error: 'unable to update sms_message' }, status: :internal_server_error
@@ -51,20 +50,20 @@ class V1::SmsMessagesController < ApplicationController
 
   private
 
-  def message_params
-    params.require(:sms_message).permit(:phone_number, :message)
-  end
-
-  def update_message_params
+  def update_params
     params.permit(:status)
   end
 
   def set_sms_message
     @sms_message =
-      if params[:message_uuid]
-        SmsMessage.find_by!(message_uuid: params[:message_uuid])
+      if params[:message_id]
+        SmsMessage.find_by!(message_uuid: params[:message_id])
       else
         SmsMessage.find(params[:id])
       end
+  end
+
+  def message_params
+    params.require(:sms_message).permit(:phone_number, :message_txt)
   end
 end

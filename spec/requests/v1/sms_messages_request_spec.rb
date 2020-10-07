@@ -31,9 +31,6 @@ RSpec.describe "V1::SmsMessages", type: :request do
 
     it 'should return filtered for search by status' do
     end
-
-    it 'should return filtered for search by status_code' do
-    end
   end
 
   describe 'create' do

@@ -70,17 +70,5 @@ RSpec.describe ProviderUrlService do
 
       it 'should log_message for rescued errors'
     end
-
-    describe 'set_rails_host' do
-      it 'should add the ngrok url to the Rails hosts settings if development' do
-        Rails.env = 'development'
-        stub_ngrok
-        sm = ProviderUrlService.new
-
-        expect(Rails.application.config.hosts).to include(ngrok_url)
-      end
-
-      it 'should log rescued errors'
-    end
   end
 end

@@ -10,7 +10,6 @@ FactoryBot.define do
       after :build do |sms_message|
         sms_message.message_uuid = sms_message.message_uuid || SecureRandom.uuid
         sms_message.status       = sms_message.status || 'Lorem ipsum dolor sit amet'
-        sms_message.status_code  = sms_message.status_code || 200
         sms_message.total_tries  = sms_message.total_tries || rand(1..6)
         sms_message.url_domain   = sms_message.url_domain || 'https://my-amazing-test-domain.com'
         sms_message.url_path     = sms_message.url_path || "/test/provider#{rand(1..2)}"
@@ -19,8 +18,8 @@ FactoryBot.define do
 
     trait :failed_submit do
       after :build do |sms_message|
-        sms_message.status      = sms_message.status || 'System was unable to post to external sms services'
-        sms_message.status_code = sms_message.status_code || 500
+        sms_message.message_uuid = sms_message.message_uuid || SecureRandom.uuid
+        sms_message.status      = sms_message.status || 'System failed to post to external sms services'
         sms_message.total_tries = sms_message.total_tries || rand(3..6)
         sms_message.url_domain  = sms_message.url_domain || 'https://my-amazing-test-domain.com'
         sms_message.url_path    = sms_message.url_path || "/test/provider#{rand(1..2)}"
