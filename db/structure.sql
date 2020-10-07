@@ -72,7 +72,6 @@ CREATE TABLE public.sms_messages (
     message_txt text NOT NULL,
     message_uuid character varying(80),
     status character varying,
-    status_code integer,
     total_tries integer,
     url_domain character varying,
     url_path character varying,
@@ -126,13 +125,6 @@ CREATE INDEX index_sms_messages_on_phone_number ON public.sms_messages USING gin
 --
 
 CREATE INDEX index_sms_messages_on_status ON public.sms_messages USING gin (status public.gin_trgm_ops);
-
-
---
--- Name: index_sms_messages_on_status_code; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_sms_messages_on_status_code ON public.sms_messages USING btree (status_code);
 
 
 --

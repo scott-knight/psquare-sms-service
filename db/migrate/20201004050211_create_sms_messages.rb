@@ -7,7 +7,6 @@ class CreateSmsMessages < ActiveRecord::Migration[6.0]
       t.text     :message_txt, null: false
       t.string   :message_uuid, limit: 80
       t.string   :status
-      t.integer  :status_code
       t.integer  :total_tries
       t.string   :url_domain
       t.string   :url_path
@@ -34,11 +33,9 @@ class CreateSmsMessages < ActiveRecord::Migration[6.0]
     add_index(:sms_messages, :url_domain, using: :gin, opclass: {url_domain: :gin_trgm_ops}, algorithm: :concurrently)
     add_index(:sms_messages, :url_path, using: :gin, opclass: {url_path: :gin_trgm_ops}, algorithm: :concurrently)
     add_index(:sms_messages, :total_tries)
-    add_index(:sms_messages, :status_code)
   end
 
   def down
-    remove_index(:sms_messages, :status_code)
     remove_index(:sms_messages, :total_tries)
     remove_index(:sms_messages, :url)
     remove_index(:sms_messages, :status)
