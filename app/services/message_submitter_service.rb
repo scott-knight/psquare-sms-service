@@ -47,7 +47,7 @@ class MessageSubmitterService
   def initialize(sms_message_id:, provider: nil, retry_on_fail: true, weight1: 30, weight2: 70)
     @urls           = ProviderUrlService.new
     @retry_on_fail  = retry_on_fail
-    @provider       = provide
+    @provider       = provider
     @sms_message    = SmsMessage.find(sms_message_id)
     @weighted_ratio = weight1.fdiv weight2
   rescue ActiveRecord::RecordNotFound => e
@@ -112,7 +112,7 @@ class MessageSubmitterService
   def set_the_json_payload
     @json_payload = Oj.to_json({
       to_number:    sms_message.phone_number,
-      message:      sms_message.message,
+      message:      sms_message.message_txt,
       callback_url: urls.callback_url
     })
   end
@@ -132,7 +132,7 @@ class MessageSubmitterService
   end
 
   def submit_to_api(url)
-    @resposne = Faraday.post(url) do |req|
+    @response = Faraday.post(url) do |req|
       req.headers['Content-Type'] = APP_JSON
       req.headers['User-Agent'] = 'Faraday'
       req.body = json_payload
@@ -140,7 +140,7 @@ class MessageSubmitterService
 
     @total_tries += 1
     @tries += 1
-    @done = response.try(:code) == 200
+    @done = response.try(:status) == 200
   end
 
   def submit_message
@@ -155,17 +155,15 @@ class MessageSubmitterService
   def sms_message_data
     if done
       body = Oj.load(response.body, symbol_keys: true)
-      { message_uuid: body[:message_id],
-        status_code: response.status }
+      { message_uuid: body[:message_id] }
     else
-      { status: 'System was unable to post to external sms services',
-        status_code: response.try(:status) || 500 }
+      { status: 'System failed to post to external sms services' }
     end
   end
 
   def update_sms_message
     @sms_message.update(
-      sms_message_data.merge(total_tries: total_tries).merge(domain_and_path(current_url))
+      sms_message_data.merge(total_tries: total_tries).merge(domain_and_path)
     )
   end
 
