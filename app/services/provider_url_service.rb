@@ -5,7 +5,7 @@ class ProviderUrlService
   AMAZON_URL = 'https://jo3kcwlvke.execute-api.us-west-2.amazonaws.com/dev'
 
   attr_reader :callback_url, :endpoint, :provider1_url, :provider2_url,
-              :public_url
+              :public_url, :host
 
   def initialize(endpoint: 'delivery_status')
     @provider1_url = "#{AMAZON_URL}/provider1"
@@ -26,7 +26,6 @@ class ProviderUrlService
 
   def call_setup
     set_public_url
-    set_rails_host
     set_callback_url
     true
   end
@@ -36,7 +35,9 @@ class ProviderUrlService
   end
 
   def set_callback_url
-    @callback_url = "#{public_url}/#{API_VERSION}/#{endpoint}"
+    uri = URI(public_url)
+    @host = uri.host
+    @callback_url = "#{public_url}/#{API_VERSION}/sms_messages/#{endpoint}"
   end
 
   def set_public_url
@@ -50,20 +51,13 @@ class ProviderUrlService
     log_message('had an error while setting the public_url', e)
   end
 
-  def set_rails_host
-    if public_url && Rails.env.development?
-      uri = URI(public_url)
-      Rails.application.configure { config.hosts |= [uri.host] }
-    end
-  rescue => e
-    log_message('was unable to set Rails hosts', e)
-  end
-
   # :nocov:
   private
 
   def log_message(message, e)
-    Rails.logger.error "ExternalSmsService #{message}. Rescued Error: #{e.to_s}"
+    Rails.logger.error Rainbow(
+      "ProviderUrlService #{message}. Rescued Error: #{e.to_s}"
+    ).red
     nil
   end
   # :nocov:
