@@ -28,15 +28,15 @@ class SmsMessage < ApplicationRecord
   scope :search_status_code, ->(status_code) { where('status_code = ?', status_code) }
   scope :search_url_domain, ->(domain) { where('url_domain iLIKE ?', "%#{domain}%") }
   scope :search_url_path, ->(path) { where('url_path iLIKE ?', "%#{path}%") }
-  scope :unsubmitted, -> { where(message_id: nil).where(status_code: nil) }
+  scope :unsubmitted, -> { where(message_uuid: nil).where(status_code: nil) }
 
 
   def submitted?
-    message_id.present? && status_code == 200
+    message_uuid.present? && [200].include?(status_code)
   end
 
   def submitted_url
-    %w(url_domain url_path).join
+    [url_domain, url_path].join
   end
 
   private

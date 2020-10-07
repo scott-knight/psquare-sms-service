@@ -42,7 +42,7 @@ class V1::SmsMessagesController < ApplicationController
 
   def resend
     if @sms_message.submitted? && params[:force].blank?
-      render json: { message: 'The sms_message already has a message_id. To resend it anyway, use param `force=true`' }, status: :ok
+      render json: { message: 'The sms_message already has a message_uuid. To resend it anyway, use param `force=true`' }, status: :ok
     else
       SendSmsMessageWorker.perform_async(@sms_message.id)
       render json: { message: 'sms_message was successfully queued to resend' }, status: :ok
@@ -61,8 +61,8 @@ class V1::SmsMessagesController < ApplicationController
 
   def set_sms_message
     @sms_message =
-      if params[:message_id]
-        SmsMessage.find_by!(message_id: params[:message_id])
+      if params[:message_uuid]
+        SmsMessage.find_by!(message_uuid: params[:message_uuid])
       else
         SmsMessage.find(params[:id])
       end

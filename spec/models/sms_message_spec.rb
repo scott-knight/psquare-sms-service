@@ -90,7 +90,7 @@ RSpec.describe SmsMessage, type: :model do
         2.times { create(:sms_message, :successful_submit, :discarded) }
         create(:sms_message)
 
-        expect(SmsMessage.discarded.size).to be 2
+        expect(SmsMessage.discarded.size).to eq 2
       end
     end
 
@@ -99,7 +99,7 @@ RSpec.describe SmsMessage, type: :model do
         2.times { create(:sms_message, :successful_submit, :discarded) }
         3.times { create(:sms_message, :successful_submit) }
 
-        expect(SmsMessage.kept.size).to be 3
+        expect(SmsMessage.kept.size).to eq 3
       end
     end
 
@@ -108,7 +108,7 @@ RSpec.describe SmsMessage, type: :model do
         3.times { create(:sms_message, :failed_submit) }
         create(:sms_message, :successful_submit)
 
-        expect(SmsMessage.failed_submit.size).to be 3
+        expect(SmsMessage.failed_submit.size).to eq 3
       end
     end
 
@@ -119,8 +119,8 @@ RSpec.describe SmsMessage, type: :model do
         create(:sms_message, :failed_submit, message_txt: 'Failed Test Message' )
         create(:sms_message, :failed_submit, message_txt: 'What about bob?' )
 
-        expect(SmsMessage.search_message_txt('test').size).to be 4
-        expect(SmsMessage.search_message_txt('bob').size).to be 3
+        expect(SmsMessage.search_message_txt('test').size).to eq 4
+        expect(SmsMessage.search_message_txt('bob').size).to eq 3
       end
     end
 
@@ -130,37 +130,73 @@ RSpec.describe SmsMessage, type: :model do
         3.times { create(:sms_message, :successful_submit) }
         create(:sms_message, :successful_submit, message_uuid: uuid)
 
-        binding.pry
+        expect(SmsMessage.search_message_uuid(uuid.last(17)).size).to eq 1
       end
     end
 
     describe 'search_phone' do
       it 'should return expected records' do
+        create(:sms_message, :successful_submit, phone_number: '913 345 6789')
+        create(:sms_message, :successful_submit, phone_number: '913 123 6789')
+        create(:sms_message, :successful_submit, phone_number: '913 345 1234')
+
+        expect(SmsMessage.search_phone('913').size).to eq 3
+        expect(SmsMessage.search_phone('123').size).to eq 2
+        expect(SmsMessage.search_phone('6789').size).to eq 2
       end
     end
 
     describe 'search_status' do
       it 'should return expected records' do
+        2.times { create(:sms_message, :successful_submit) }
+        create(:sms_message, :failed_submit)
+        create(:sms_message, :successful_submit, status: 'It worked well')
+
+        expect(SmsMessage.search_status('Lorem ipsum').size).to be 2
+        expect(SmsMessage.search_status('unable').size).to eq 1
+        expect(SmsMessage.search_status('worked').size).to eq 1
       end
     end
 
     describe 'search_status_code' do
       it 'should return expected records' do
+        2.times { create(:sms_message, :successful_submit) }
+        create(:sms_message, :failed_submit)
+
+        expect(SmsMessage.search_status_code(200).size).to eq 2
+        expect(SmsMessage.search_status_code(500).size).to eq 1
       end
     end
 
     describe 'search_url_domain' do
       it 'should return expected records' do
+        2.times { create(:sms_message, :successful_submit, url_domain: 'https://success-test.com') }
+        create(:sms_message, :failed_submit, url_domain: 'https://failed-test.com')
+
+        expect(SmsMessage.search_url_domain('success').size).to eq 2
+        expect(SmsMessage.search_url_domain('fail').size).to eq 1
+        expect(SmsMessage.search_url_domain('test').size).to eq 3
       end
     end
 
     describe 'search_url_path' do
       it 'should return expected records' do
+        2.times { create(:sms_message, :successful_submit, url_path: '/success/test2.com') }
+        create(:sms_message, :failed_submit, url_path: '/failed/test1')
+
+        expect(SmsMessage.search_url_path('success').size).to eq 2
+        expect(SmsMessage.search_url_path('fail').size).to eq 1
+        expect(SmsMessage.search_url_path('test').size).to eq 3
       end
     end
 
     describe 'unsubmitted' do
       it 'should return expected records' do
+        2.times { create(:sms_message, :successful_submit) }
+        3.times { create(:sms_message, :failed_submit) }
+        2.times { create(:sms_message) }
+
+        expect(SmsMessage.unsubmitted.size).to eq 2
       end
     end
   end
@@ -168,15 +204,24 @@ RSpec.describe SmsMessage, type: :model do
   describe 'instance methods' do
     describe 'submitted?' do
       it 'should return true' do
+        sm = build(:sms_message, :successful_submit)
+
+        expect(sm.submitted?).to be_truthy
       end
 
       it 'should return false' do
+        sm = build(:sms_message, :failed_submit)
+
+        expect(sm.submitted?).to be_falsey
       end
     end
 
     describe 'submitted_url' do
       it 'should return a full url' do
-        sm = build(:sms_message, :successful_submit)
+        parts = ['http://good.com', '/success/test2.com']
+        sm = build(:sms_message, :successful_submit, url_domain: parts[0], url_path: parts[1])
+
+        expect(sm.submitted_url).to eq parts.join
       end
     end
   end
