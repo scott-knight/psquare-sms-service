@@ -13,7 +13,10 @@ class V1::SmsMessagesController < ApplicationController
     @pagy, @sms_messages = pagy(filtered_messages)
     render json: SmsMessageSerializer.new(
       @sms_messages,
-      { meta: { pagination: pagy_metadata(@pagy) } }
+      { meta: {
+        pagination: pagy_metadata(@pagy),
+        load_balance_ratio: (REDIS.get('provider1_count').to_i.fdiv REDIS.get('provider2_count').to_i).round(4)
+      } }
     ), status: :ok
   end
 
@@ -21,7 +24,12 @@ class V1::SmsMessagesController < ApplicationController
     @sms_message = SmsMessage.new(message_params)
     if @sms_message.save
       SendSmsMessageWorker.perform_async(@sms_message.id)
-      render json: { message: 'sms_message was successfully created and sent to the queue' }, status: :created
+      render json: SmsMessageSerializer.new(
+        @sms_message,
+        { meta: {
+            server_message: 'sms_message was sent to the queue'
+        }
+      }), status: :ok
     else
       render json: { errors: @sms_message.errors.full_messages.join(', ') }, status: :unprocessable_entity
     end
@@ -44,7 +52,12 @@ class V1::SmsMessagesController < ApplicationController
       render json: { message: 'The sms_message already has a message_uuid. To resend it anyway, use param `force=true`' }, status: :ok
     else
       SendSmsMessageWorker.perform_async(@sms_message.id)
-      render json: { message: 'sms_message was successfully queued to resend' }, status: :ok
+      render json: SmsMessageSerializer.new(
+        @sms_message,
+        { meta: {
+            server_message: 'sms_message was successfully queued to resend'
+        }
+      }), status: :ok
     end
   end
 

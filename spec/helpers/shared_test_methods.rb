@@ -4,7 +4,7 @@
 module SharedTestMethods
   extend RSpec::SharedContext
 
-  SMS_SERVICE_URL = 'https://jo3kcwlvke.execute-api.us-west-2.amazonaws.com/dev/provider2'
+  SMS_BASE_SERVICE_URL = 'https://jo3kcwlvke.execute-api.us-west-2.amazonaws.com/dev/provider'
 
   def json_parse(json)
     Oj.load(json, symbol_keys: true)
@@ -26,12 +26,30 @@ module SharedTestMethods
     )
   end
 
-  def stub_sms_service_success(url = SMS_SERVICE_URL)
-
+  def stub_submit_sms_service_success(provider: 2, to_number:)
+    stub_request(:post, "#{SMS_BASE_SERVICE_URL}#{provider}").
+    with(
+      body: "{\"to_number\":\"#{to_number}\",\"message\":\"This is a test message. Enjoy!\",\"callback_url\":\"https://test.mydomain.com/v1/sms_messages/delivery_status\"}",
+      headers: {
+      'Accept'=>'*/*',
+      'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+      'Content-Type'=>'application/json',
+      'User-Agent'=>'Faraday'
+      }).
+    to_return(status: 200, body: Oj.to_json({ message_id: SecureRandom.uuid}), headers: {})
   end
 
-  def stub_sms_service_failure(url = SMS_SERVICE_URL)
-
+  def stub_submit_sms_service_failure(provider: 2, to_number:)
+    stub_request(:post, "#{SMS_BASE_SERVICE_URL}#{provider}").
+    with(
+      body: "{\"to_number\":\"#{to_number}\",\"message\":\"This is a test message. Enjoy!\",\"callback_url\":\"https://test.mydomain.com/v1/sms_messages/delivery_status\"}",
+      headers: {
+      'Accept'=>'*/*',
+      'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+      'Content-Type'=>'application/json',
+      'User-Agent'=>'Faraday'
+      }).
+    to_return(status: 500, body: Oj.to_json({ message: 'it failed' }), headers: {})
   end
 end
 # :nocov:

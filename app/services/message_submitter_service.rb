@@ -3,17 +3,21 @@
 require 'faraday'
 
 class MessageSubmitterService
-  WEIGHT_NAME = 'provider'
+  CACHE_NAME = 'provider'
 
-  attr_reader :backup_url, :current_url, :done, :json_payload, :primary_url,
-              :provider,  :response, :retry_on_fail, :sms_message, :tries,
-              :total_tries, :urls
+  attr_reader :backup, :backup_url, :current_url, :done, :json_payload, :lbc,
+              :primary, :primary_url, :provider,  :response, :retry_on_fail,
+              :sms_message, :tries, :total_tries, :urls, :weight1, :weight2,
+              :delay
 
-  def initialize(sms_message_id:, provider: nil, retry_on_fail: true, weight1: 30, weight2: 70)
-    @urls          = ProviderUrlService.new
+  def initialize(sms_message_id, provider: nil, retry_on_fail: true, weight1: 30, weight2: 70, delay: 2)
+    @urls = ProviderUrlService.new
     @retry_on_fail = retry_on_fail
-    @provider      = provider
-    @sms_message   = SmsMessage.find(sms_message_id)
+    @provider = provider
+    @sms_message = SmsMessage.find(sms_message_id)
+    @weight1 = weight1
+    @weight2 = weight2
+    @delay = delay
     set_json_payload
     set_primary_and_backup
     set_primary_and_backup_urls
@@ -21,6 +25,7 @@ class MessageSubmitterService
 
   def call
     submit_message
+    self
   end
 
   private
@@ -36,19 +41,25 @@ class MessageSubmitterService
 
   def set_primary_and_backup_from_provider_variable
     @primary = provider
-    @backup  = provider == 1 ? 2 : 1
+    @backup  = primary == 1 ? 2 : 1
+    @lbc = LoadBalanceCalcService.new(
+      CACHE_NAME,
+      weight1: @primary == 1 ? 1 : 0,
+      weight2: @primary == 2 ? 1 : 0
+    ).call
   end
 
   def set_primary_and_backup
     return set_primary_and_backup_from_provider_variable if provider_valid?
 
     @lbc = LoadBalanceCalcService.new(
-      weight_name: WEIGHT_NAME,
+      CACHE_NAME,
       weight1: weight1,
       weight2: weight2
     ).call
     @primary = lbc.primary
     @backup = lbc.backup
+    @provider = @primary unless provider_valid?
   end
 
   def set_primary_and_backup_urls
@@ -70,7 +81,7 @@ class MessageSubmitterService
 
     until tries == 3 || done do
       submit_to_api(url)
-      sleep 2 unless done
+      sleep delay unless done
     end
   end
 

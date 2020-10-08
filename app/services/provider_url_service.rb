@@ -20,8 +20,6 @@ class ProviderUrlService
     ngrok_uri  = URI('http://127.0.0.1:4040/api/tunnels')
     ngork_resp = Net::HTTP.get(ngrok_uri)
     Oj.load(ngork_resp, symbol_keys: true).dig(:tunnels, 0, :public_url)
-  rescue => e
-    log_message('was unable to get the ngrok_url', e)
   end
 
   def call_setup
@@ -47,18 +45,5 @@ class ProviderUrlService
       else
         "https://#{Rails.application.routes.default_url_options[:host]}"
       end
-  rescue => e
-    log_message('had an error while setting the public_url', e)
   end
-
-  # :nocov:
-  private
-
-  def log_message(message, e)
-    Rails.logger.error Rainbow(
-      "ProviderUrlService #{message}. Rescued Error: #{e.to_s}"
-    ).red
-    nil
-  end
-  # :nocov:
 end

@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
 class LoadBalanceCalcService
-  attr_reader :backup, :cache1_count, :cache2_count,  :cache_name1,
-              :cache_name2, :cache_name_to_increment, :cached_ratio,
-              :send_to_weight1, :skip_calculation,  :weight1, :weight2,
-              :weight_name, :weight_ratio, :primary
+  attr_reader :backup, :cache1_count, :cache2_count, :cache_name, :cache_name1,
+              :cache_name2, :cache_name_to_increment, :cached_ratio, :primary,
+              :send_to_weight1, :skip_calculation, :weight1, :weight2,
+              :weight_ratio
 
-  def initialize(weight_name:, weight1: 50, weight2: 50)
+  def initialize(cache_name, weight1: 50, weight2: 50)
     @skip_calculation = false
-    @weight1 = weight1.to_i
-    @weight2 = weight2.to_i
-    @weight_name = weight_name
-    set_named_counts
-    set_weight_counts
+    @weight1 = weight1
+    @weight2 = weight2
+    @cache_name = cache_name
+    set_cache_names
+    get_cache_counts
     set_cached_ratio
-    set_weight_ratio
+    set_weighted_ratio
   end
 
   def call
@@ -22,13 +22,11 @@ class LoadBalanceCalcService
     @primary = send_to_weight1 ? 1 : 2
     @backup  = primary == 1 ? 2 : 1
     set_cache_name_to_increment
-
     self
   end
 
   def determine_if_a_weight_has_immediate_priority
-    # You can't load balance against 0. If either is zero the other has
-    # priority. One can't have zero weight and expect to receive anything.
+    # You can't load balance against 0. If either is zero, the other has 100% priority.
     if weight1 > 0 && weight2.zero?
       @send_to_weight1 = true
       @skip_calculation = true
@@ -61,9 +59,9 @@ class LoadBalanceCalcService
     @cache_name_to_increment = primary == 1 ? cache_name1 : cache_name2
   end
 
-  def set_named_counts
-    @cache_name1 = "#{weight_name}1_count"
-    @cache_name2 = "#{weight_name}2_count"
+  def set_cache_names
+    @cache_name1 = "#{cache_name}1_count"
+    @cache_name2 = "#{cache_name}2_count"
   end
 
   def set_ratio(weight_1, weight_2)
@@ -72,7 +70,7 @@ class LoadBalanceCalcService
     (weight_1.fdiv weight_2).round(2)
   end
 
-  def set_weight_counts
+  def get_cache_counts
     count = REDIS.get(cache_name2)
 
     if count.blank? || count.to_i > 9999
@@ -84,15 +82,14 @@ class LoadBalanceCalcService
     @cache2_count = REDIS.get(cache_name2).to_i
   end
 
-  def set_weight_ratio
+  def set_weighted_ratio
     determine_if_a_weight_has_immediate_priority
 
     @weight_ratio = set_ratio(weight1, weight2)
   end
 
   def weights_are_zero?(weight_1, weight_2)
-    weight_1 + weight_2 == 0 ||
-      !!((weight_1.fdiv weight_2).infinite?)
+    weight_1 + weight_2 == 0 || !!((weight_1.fdiv weight_2).infinite?)
   end
 
   # -----------------------------------------------------------------------
