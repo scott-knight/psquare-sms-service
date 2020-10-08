@@ -185,78 +185,7 @@ The index view returns a collection of serialzed JSON sms_messages. For example:
 
 As you can see in the example, the data returns a paginated array, pagination meta data and the current load_balance ratio.
 
-The super fast and amazing `Pagy` gem is used to build and delivery the paginated content. The unbelievably fast `jsonapi-serializer` gem is used to build the serialzed JSON.
-
-<br/>
-
-## Sending Messages
-
-To create and send an sms message, use `POST` at the folloing url: `localhost:3000/v1/sms_messages`, with the following JSON body:
-
-```json
-{
-  "sms_message": {
-    "phone_number": <your number>,
-    "message_txt": <your message>
-  }
-}
-```
-
-This exact structure is expected. If you leave out a field, you should receive and error.
-
-Once a message is POST'ed, the app will queue it for delivery via Soidekiq and Redis. The response you'll receive will be a serialzed object that looks like this:
-
-```json
-{
-  "data": {
-    "id": "e1bcdbb7-0511-4868-be31-02bfd21c1037",
-    "type": "sms_message",
-    "attributes": {
-      "phone_number": "9139988888",
-      "message_txt": "This is for my rails sms message service",
-      "message_uuid": null,
-      "status": null,
-      "total_tries": null,
-      "url_domain": null,
-      "url_path": null,
-      "created_at": "2020-10-08T03:32:13.924Z",
-      "updated_at": "2020-10-08T03:32:13.924Z",
-      "discarded_at": null
-    },
-    "links": {
-      "self": {
-        "url": "/v1/sms_messages/e1bcdbb7-0511-4868-be31-02bfd21c1037"
-        }
-      }
-  },
-  "meta": {
-    "server_message": "sms_message was sent to the queue"
-  }
-}
-```
-
-If you visit the self URL you will be able to see the status of the message.
-
-<br/>
-
-### The SmsMessage Object
-
-Looking at the returned object above, you see the following fields:
-
-* phone_number (STRING) **required** - Sent with your POST.
-* message_txt  (TEXT) **required** - Sent with your POST.
-* message_uuid (TEXT) - This is the UUID sent by the external API with a 200 response.
-* status (STRING)- This is the status message sent by the external api or by this apps messaging service if ther are 6 failed attempts.
-* total_tries (INTEGER)- This records the total number of tries the worker attempted to send the message.
-* url_domain (STRING) - This records the domain the message was sent to. I realize it's overkill to record this, but it's nice historical data.
-* url_path (STRING) - This is the succesful path that was contacted.
-* create_at (DateTime) - stamp when the record was created.
-* updated_at (DateTime) - stamp when the record gets update, initially the same as created_at.
-* discarded_at (DateTime) - stamp for a softdelete of the record.
-
-The `meta > server_message` is the message added by the controller to let you know what happened.
-
-In addition to the described fields above, there is also a field `tsv` which stores indexed TSVECTOR data on the message_text field. This makes searching for information by text fast and efficient. Other efficient indexes have been created for other fields as well. Details can be found in the migrations and `schema.sql` file.
+The `Pagy` gem is used to build and delivery the paginated content. The `jsonapi-serializer` gem is used to build the serialzed JSON.
 
 <br/>
 
