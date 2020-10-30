@@ -10,9 +10,9 @@ While there are some complex parts to this app, it was developed using [K.I.S.S.
 
 ## RBENV, RBENV Libraries, and Gems
 
-[RBENV](https://github.com/sstephenson/rbenv) and [RBENV-GEMSET](https://github.com/jf/rbenv-gemset) are used to manange Ruby and install ruby gems. BREW was used to install [RBENV](https://github.com/sstephenson/rbenv) and the supportive RBENV libraries using: `brew install rbenv rbenv-gemset rbenv-use rbenv-aliases`.
+[RBENV](https://github.com/sstephenson/rbenv) and [RBENV-GEMSET](https://github.com/jf/rbenv-gemset) are used to manange Ruby and install ruby gems. BREW was used to install [RBENV](https://github.com/sstephenson/rbenv) and the supportive RBENV libraries using: `brew install rbenv rbenv-gemset rbenv-use rbenv-aliases`. 
 
-`Rbenv-gemset` will automatically manage gems for the current Ruby version (set in memory by RBENV), in gemsets, if there is a `.ruby-gemset` file in the project directory. If `.ruby-gemset` isn't found, it will install the gems in the `global` scope of the current Ruby version.
+`rbenv-gemset` will automatically manage gems for the current Ruby version (set in memory by RBENV), in gemsets, if there is a `.ruby-gemset` file in the project directory. If `.ruby-gemset` isn't found, it will install the gems in the `global` scope of the current Ruby version.
 
 ### Installing a Ruby with RBENV
 
@@ -73,7 +73,7 @@ Normally, you wouldn't expose the `master.key` file in the code. However, as thi
 EDITOR="vim --wait" bin/rails credentials:edit
 ```
 
-When you save and close the file, `credentials.yml.enc` will automatically reencrypt with the new changes.
+When you save and close the file, `credentials.yml.enc` will automatically re-encrypt with the new changes.
 
 <br/>
 
@@ -85,7 +85,7 @@ You can run each of the services in one of two ways. You can run each service in
 
 There are advantages to running services individually. Mainly, when you add `binding.pry` break-points in the code, the correlating console (Rails or Sidekiq) will be available for you to work in.
 
-To start each service individually, open 3 terminal sessions and run one line in each of the sessions. The lines are as follows:
+To start each service individually, open 4 terminal sessions and run one line in each of the sessions. The lines are as follows:
 
 Terminal 1
 ```sh
@@ -120,17 +120,17 @@ foreman start
 
 ## API Details
 
-This app was designed to send fake sms texts to 2 separate DUMMY apis hosted on AWS. Those apis randomly fail on connection attempts, and also randomly sends back information about success or failure in sending on your fake message.
+This app was created to send fake sms text content to 2 separate dummy apis, hosted on AWS. The dummy apis randomly fail on connection attempts. They also randomly return success or failure responses.
 
-This app is also designed to send a load balance of 30% to server 1 and 70% to server 2. After you send around 10 messages you should be able to ping the sms_messages index endpoint and view a paginated list of SmsMessages. The meta data of the index contains the `load_balance_ratio` which should indicate an estimated 3/7 split on the load.
+This app was also created to send the messages in a load balance of 30% to server 1 and 70% to server 2. After it sends around 10 messages you should be able to query the sms_messages index endpoint and view a paginated list of SmsMessages. The `meta` in the returned JSON contains the `load_balance_ratio` which should indicate an estimated 3/7 split on the load.
 
-After this app submits a message to the external api, the external api will respond with a failure or success response. The background worker that started the job of sending the message will attempt to send the message again, for a maximum of 3 times. If the 3 times are exceeded, it will attempt to contact the alternate server, for a maximum of 3 times.
+After it submits a message to the external api, the external api will respond with a failure or success response. The background worker that started the job of sending the message will attempt to send the message again, for a maximum of 3 times. If the 3 times are exceeded, it will attempt to contact the alternate server, for a maximum of 3 times. The total attemps count is saved to the sms_message object.
 
 <br/>
 
 ## API Endpoints
 
-There are several endpoints that allow you to create, view, and even resend messages.
+Below are the defined api endpoints that allow you to create, view, and even resend messages.
 
 #### Index
 
@@ -140,7 +140,7 @@ The endpoint for the index view is:
 GET http://localhost:3000/v1/sms_messages
 ```
 
-The index view accepts params for searching sms_messages. Please review `app/controllers/v1/sms_messages_controller.rb#index` for the list of params.
+The index endpoint accepts params for searching sms_messages. Please review [sms_messages_controller.rb#index](https://github.com/scott-knight/psquare-sms-service/blob/master/app/controllers/v1/sms_messages_controller.rb#L6) for the list of params.
 
 The index view returns a collection of serialzed JSON sms_messages. For example:
 
@@ -183,7 +183,7 @@ The index view returns a collection of serialzed JSON sms_messages. For example:
 }
 ```
 
-As you can see in the example, the data returns a paginated array, pagination meta data and the current load_balance ratio.
+As you can see in the example, the data returns a paginated array, pagination meta data and the current `load_balance_ratio`.
 
 The `Pagy` gem is used to build and delivery the paginated content. The `jsonapi-serializer` gem is used to build the serialzed JSON.
 
@@ -210,7 +210,7 @@ You will need to send the following payload:
 
 This exact structure is expected. If you leave out a field, you should receive and error.
 
-Once a message is POST'ed, the app will queue it for delivery via Soidekiq and Redis. The response you'll receive will be a serialzed object that looks like this:
+Once a message is POST'ed, the app will queue it for delivery via Sidekiq and Redis. The response you'll receive will be a serialzed object that looks like this:
 
 ```json
 {
@@ -297,7 +297,7 @@ Example:
 localhost:3000/v1/sms_messages/delivery_status?message_id=a955fa62-ec72-4662-9ad5-3f622e00f1ca
 ```
 
-The following paytload is required:
+The following payload is required:
 
 ```sh
 {
@@ -305,7 +305,7 @@ The following paytload is required:
 }
 ```
 
-In this example, the JSON contains the word `status`. This is the expected key from the exteral api. Any test message can be sent as needed.
+In this example, the JSON contains the word `status`. `status` is the only expected key in the payload.
 
 
 ### Resend
