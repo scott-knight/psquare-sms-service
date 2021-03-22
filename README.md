@@ -1,4 +1,4 @@
-# PSquare SMS Service Example
+# SMS Messaging Service Example
 
 This is a Rails 6 api service application which submits SMS text messages to external SMS services. [Postgres 12](https://postgresapp.com/downloads.html) is used for record storage, specifically to take advantage of TSVECTOR type fields. The app also requires that Redis and Sidekiq instances are running in parallel with the app. Instructions for running all the required services are outlined below.
 
